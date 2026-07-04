@@ -8,6 +8,12 @@ on:
 
 env:
   SNAKEMAKE_VERSION: "7.32.4"
+  # snakemake 7.32.4 calls the deprecated pulp.list_solvers() alias at
+  # import time; pulp>=2.8 dropped that alias in favor of listSolvers(),
+  # which crashes `snakemake --version` / `snakemake -n` with
+  # "AttributeError: module 'pulp' has no attribute 'list_solvers'"
+  # on any fresh install that resolves latest pulp. Pin it.
+  PULP_VERSION: "2.7.0"
 
 jobs:
   syntax-check:
@@ -33,7 +39,7 @@ jobs:
         with:
           python-version: "3.10"
       - name: Install snakemake
-        run: pip install "snakemake==${SNAKEMAKE_VERSION}"
+        run: pip install "snakemake==${SNAKEMAKE_VERSION}" "pulp==${PULP_VERSION}"
       - name: Show snakemake version
         run: snakemake --version
       - name: Dry run
@@ -50,7 +56,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install "snakemake==${SNAKEMAKE_VERSION}" pytest
+          pip install "snakemake==${SNAKEMAKE_VERSION}" "pulp==${PULP_VERSION}" pytest
       - name: Run Snakemake pipeline on demo data
         run: snakemake --cores 1 -p
       - name: Check output
