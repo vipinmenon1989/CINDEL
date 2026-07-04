@@ -8,6 +8,7 @@ __pycache__/
 dist/
 build/
 .eggs/
+.pytest_cache/
 
 # Virtual environments
 venv/
@@ -15,9 +16,12 @@ env/
 .venv/
 .env/
 
-# Output files
+# Snakemake
+.snakemake/
+results/
+
+# Generated output (but keep demo/input.csv)
 Score.csv
-*.csv
 
 # OS files
 .DS_Store

@@ -1,0 +1,13 @@
+# CINDEL Snakemake configuration
+
+# Mode: "batch" (score a CSV of guides) or "single" (score one sequence)
+mode: batch
+
+# Batch mode input/output (used when mode: batch)
+input_csv: demo/input.csv
+output_csv: results/Score.csv
+
+# Single mode sequence (used when mode: single) - must be 27 bp, TTTV PAM
+single_sequence: "TTTACGTAGCTAGCTAGCTAGCTAGCT"
+
+verbose: true

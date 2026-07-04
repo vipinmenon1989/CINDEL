@@ -1,0 +1,10 @@
+name: cindel
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3.10
+  - viennarna
+  - pip
+  - pip:
+      - pytest
