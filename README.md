@@ -139,17 +139,72 @@ See `requirements.txt` for the full list.
 
 ---
 
+---
+
+## Snakemake Workflow
+
+Run the scoring pipeline via Snakemake instead of calling CINDEL.py directly:
+
+```bash
+pip install snakemake
+snakemake -n                       # dry run - shows planned jobs
+snakemake --cores 1                # real run using config/config.yaml
+snakemake --cores 1 --use-conda    # real run, auto-creating the conda env in envs/environment.yaml
+```
+
+Edit `config/config.yaml` to switch between `mode: batch` (score a CSV) and
+`mode: single` (score one sequence), and to point at your own input file.
+A small demo dataset is provided at `demo/input.csv`.
+
+---
+
+## CI/CD
+
+Every push and pull request to `main`/`develop` runs three GitHub Actions jobs:
+1. **syntax-check** - compiles CINDEL.py and lints it with pyflakes
+2. **snakemake-dry-run** - validates the workflow graph (`snakemake -n`)
+3. **smoke-test** - runs the full pipeline on the demo data, checks the output, and runs the unit tests in `tests/`
+
+---
+
 ## Project Structure
 
 ```
 CINDEL/
-├── CINDEL.py          # Main scoring tool
-├── requirements.txt   # Python dependencies
-├── README.md          # This file
-└── .gitignore         # Git ignore rules
+├── CINDEL.py                    # Main scoring tool
+├── Snakefile                    # Snakemake workflow (batch / single modes)
+├── config/config.yaml           # Workflow configuration
+├── envs/environment.yaml        # Conda environment (Python + ViennaRNA)
+├── demo/input.csv               # Small demo dataset
+├── tests/test_cindel.py         # Unit tests (pytest)
+├── .github/workflows/ci.yml     # CI: syntax check, dry-run, smoke test
+├── requirements.txt              # Python dependencies
+├── README.md                    # This file
+└── .gitignore                   # Git ignore rules
 ```
 
 ---
+
+
+---
+
+## Known Issues & Recent Fixes (2026)
+
+The 2025 "modernization" commit updated this README to describe an
+argparse-based CLI, but the underlying `CINDEL.py` code had not actually
+been changed and was still Python 2 (unparenthesized `print`, `xrange`,
+mixed tabs/spaces indentation, binary-mode CSV writes). It has now been
+rewritten to match: real Python 3, `argparse`-based CLI, type hints, and
+docstrings.
+
+A real logic bug was also found and fixed: the batch-mode PAM check
+```python
+if set[j][0:3] == 'TTTA' or 'TTTG' or 'TTTC':
+```
+always evaluated to `True` (non-empty strings are truthy in a boolean
+`or`), so invalid PAMs were never actually rejected, and the slice was
+3 bp instead of the required 4. This is now `is_valid_pam()`, which
+correctly checks all 4 PAM bases against `TTTA`/`TTTG`/`TTTC`.
 
 ## Citation
 

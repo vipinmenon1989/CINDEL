@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Compile check
+        run: python -m py_compile CINDEL.py
+      - name: Lint (pyflakes)
+        run: |
+          pip install pyflakes
+          pyflakes CINDEL.py
+
+  snakemake-dry-run:
+    runs-on: ubuntu-latest
+    needs: syntax-check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install snakemake
+        run: pip install snakemake
+      - name: Dry run
+        run: snakemake -n
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    needs: snakemake-dry-run
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install snakemake pytest
+      - name: Run Snakemake pipeline on demo data
+        run: snakemake --cores 1
+      - name: Check output
+        run: |
+          test -f results/Score.csv
+          cat results/Score.csv
+      - name: Run unit tests
+        run: pytest tests/ -v
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cindel-demo-results
+          path: results/Score.csv
